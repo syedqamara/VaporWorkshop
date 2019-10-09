@@ -21,3 +21,22 @@ final class SearchResponseM: Content {
     var status_code: Int = 200
     var data: [Todo] = []
 }
+
+
+typealias ApiFutureResponse = Future<ApiResponse>
+
+final class ApiResponse: Content {
+    var code: Int = 200
+    var message: String = ""
+    var data = ApiData()
+    init() {
+        
+    }
+}
+
+final class ApiData: Content {
+    var user: User?
+    init() {
+        
+    }
+}

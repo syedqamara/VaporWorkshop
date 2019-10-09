@@ -16,6 +16,7 @@ public func routes(_ router: Router) throws {
     let todoController = TodoController()
     router.get("todos", use: todoController.index)
     router.post("new", use: todoController.create)
+    router.post("register", use: todoController.signUp)
     router.post("search", use: todoController.search)
     router.delete("todos", Todo.parameter, use: todoController.delete)
 }

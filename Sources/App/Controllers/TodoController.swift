@@ -6,13 +6,58 @@ final class TodoController {
     func index(_ req: Request) throws -> Future<[Todo]> {
         return Todo.query(on: req).all()
     }
+    //func abc(completion:(Any)->Any) -> Any {
+    //    return 0
+    //}
+    //
+    //func map(completion:(Any)->Any) -> Future<Any> {
+    //    return 0
+    //}
+    //
+    //func flatMap(completion:(Any)->Future<Any>) -> Future<Any> {
+    //    return 0
+    //}
 
+    func signUp(_ req: Request) throws -> Future<ApiResponse> {
+        return try req.content.decode(User.self).flatMap({ (decodedObject) -> Future<ApiResponse> in
+            let response = ApiResponse()
+            return User.query(on: req).all().flatMap { (allUsers) -> (Future<ApiResponse>) in
+                
+                let alreadyExistUser = allUsers.reduce(nil) { (previousSaved, user) -> User? in
+                    if user.email == decodedObject.email {
+                        return user
+                    }
+                    return previousSaved
+                }
+                if alreadyExistUser == nil {
+                    return decodedObject.save(on: req).map { (savedObject) -> (ApiResponse) in
+                        response.data.user = savedObject
+                        return response
+                    }
+                }else {
+                    response.code = 303
+                    response.message = "Already Saved user"
+                    return req.eventLoop.newSucceededFuture(result: response)
+                }
+            }
+        }).catchMap({ (error) -> (ApiResponse) in
+            let response = ApiResponse()
+            response.code = 303
+            response.message = error.localizedDescription
+            return response
+        })
+    }
+    
     /// Saves a decoded `Todo` to the database.
     func create(_ req: Request) throws -> Future<Todo> {
-        let result = try req.content.decode(Todo.self).flatMap { todo in
-            return todo.save(on: req)
+        
+        return try req.content.decode(Todo.self).flatMap { (pureTodoObject) -> (Future<Todo>) in
+            return pureTodoObject.save(on: req)
         }
-        return result
+//        return try req.content.decode(Todo.self).flatMap { todo in
+//            return todo.save(on: req)
+//        }
+        
     }
     func search(_ req: Request) throws -> Future<SearchResponseM> {
         
